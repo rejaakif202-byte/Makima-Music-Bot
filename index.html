@@ -1,1 +1,702 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Makima Music 🎵</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
 
+  body {
+    background: #0a0a0a;
+    color: #ffffff;
+    font-family: 'Segoe UI', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+
+  /* SPLASH SCREEN */
+  #splash {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    width: 100vw;
+    background: #0a0a0a;
+    position: fixed;
+    top: 0; left: 0;
+    z-index: 100;
+  }
+
+  .logo-box {
+    width: 100px;
+    height: 100px;
+    background: linear-gradient(135deg, #8b5cf6, #6d28d9);
+    border-radius: 28px;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 48px;
+    box-shadow: 0 0 40px rgba(139,92,246,0.4);
+  }
+
+  .app-title {
+    font-size: 32px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    background: linear-gradient(135deg, #fff, #a78bfa);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .app-subtitle {
+    font-size: 14px;
+    color: #6b7280;
+    margin-bottom: 48px;
+    text-align: center;
+  }
+
+  #startBtn {
+    background: #ffffff;
+    color: #0a0a0a;
+    border: none;
+    padding: 18px 60px;
+    border-radius: 50px;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    letter-spacing: 1px;
+    transition: all 0.3s;
+  }
+
+  #startBtn:active {
+    transform: scale(0.96);
+    background: #e5e7eb;
+  }
+
+  /* PLAYER SCREEN */
+  #player {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    width: 100vw;
+    min-height: 100vh;
+    padding: 20px;
+    background: #0a0a0a;
+  }
+
+  .player-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    max-width: 400px;
+    margin-bottom: 32px;
+    padding-top: 10px;
+  }
+
+  .now-playing-label {
+    font-size: 13px;
+    color: #9ca3af;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    flex: 1;
+    text-align: center;
+  }
+
+  .queue-icon {
+    font-size: 20px;
+    cursor: pointer;
+  }
+
+  /* THUMBNAIL */
+  .thumb-container {
+    position: relative;
+    width: 100%;
+    max-width: 340px;
+    margin-bottom: 28px;
+  }
+
+  #thumbnail {
+    width: 100%;
+    aspect-ratio: 16/9;
+    border-radius: 20px;
+    object-fit: cover;
+    background: #1a1a2e;
+    box-shadow: 0 20px 60px rgba(139,92,246,0.3);
+  }
+
+  .thumb-placeholder {
+    width: 100%;
+    aspect-ratio: 16/9;
+    border-radius: 20px;
+    background: linear-gradient(135deg, #1a1a2e, #16213e);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 60px;
+  }
+
+  /* SONG INFO */
+  .song-info {
+    width: 100%;
+    max-width: 340px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+  }
+
+  .song-details { flex: 1; }
+
+  #songTitle {
+    font-size: 18px;
+    font-weight: 700;
+    color: #ffffff;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 260px;
+  }
+
+  #requestedBy {
+    font-size: 13px;
+    color: #6b7280;
+    margin-top: 4px;
+  }
+
+  .heart-btn {
+    font-size: 22px;
+    cursor: pointer;
+    padding: 8px;
+    transition: transform 0.2s;
+  }
+
+  .heart-btn:active { transform: scale(1.3); }
+
+  /* WAVEFORM */
+  .waveform {
+    width: 100%;
+    max-width: 340px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    margin-bottom: 16px;
+    overflow: hidden;
+  }
+
+  .wave-bar {
+    flex: 1;
+    background: #8b5cf6;
+    border-radius: 3px;
+    animation: wave 1.2s ease-in-out infinite;
+    opacity: 0.7;
+  }
+
+  .wave-bar:nth-child(odd) { animation-delay: 0.1s; }
+  .wave-bar:nth-child(3n) { animation-delay: 0.3s; }
+  .wave-bar:nth-child(4n) { animation-delay: 0.5s; }
+
+  @keyframes wave {
+    0%, 100% { height: 20%; }
+    50% { height: 90%; }
+  }
+
+  .wave-bar.paused { animation-play-state: paused; }
+
+  /* PROGRESS BAR */
+  .progress-container {
+    width: 100%;
+    max-width: 340px;
+    margin-bottom: 8px;
+  }
+
+  #progressBar {
+    width: 100%;
+    height: 4px;
+    background: #1f2937;
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 8px;
+  }
+
+  #progressFill {
+    height: 100%;
+    background: linear-gradient(90deg, #8b5cf6, #a78bfa);
+    border-radius: 4px;
+    width: 0%;
+    transition: width 1s linear;
+  }
+
+  .time-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: #6b7280;
+  }
+
+  /* CONTROLS */
+  .controls {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    max-width: 340px;
+    margin-bottom: 32px;
+    margin-top: 16px;
+  }
+
+  .ctrl-btn {
+    font-size: 24px;
+    cursor: pointer;
+    opacity: 0.6;
+    padding: 8px;
+    transition: opacity 0.2s, transform 0.2s;
+  }
+
+  .ctrl-btn:active {
+    opacity: 1;
+    transform: scale(1.2);
+  }
+
+  .play-pause-btn {
+    width: 64px;
+    height: 64px;
+    background: #ffffff;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    cursor: pointer;
+    box-shadow: 0 0 30px rgba(255,255,255,0.2);
+    transition: transform 0.2s;
+  }
+
+  .play-pause-btn:active { transform: scale(0.92); }
+
+  /* VIBING */
+  #vibingBadge {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 50px;
+    padding: 10px 20px;
+    font-size: 14px;
+    font-weight: 500;
+    margin-bottom: 24px;
+  }
+
+  .vibe-dot {
+    width: 8px;
+    height: 8px;
+    background: #10b981;
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
+  /* NOTHING PLAYING */
+  #nothing {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    text-align: center;
+    padding: 40px;
+  }
+
+  .nothing-icon { font-size: 80px; margin-bottom: 24px; }
+  .nothing-title { font-size: 22px; font-weight: 700; margin-bottom: 8px; }
+  .nothing-sub { font-size: 14px; color: #6b7280; }
+
+  /* HIDDEN YOUTUBE */
+  #ytPlayer { display: none; }
+
+  /* LOADING */
+  #loading {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100vw; height: 100vh;
+    background: #0a0a0a;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 200;
+  }
+
+  .spinner {
+    width: 40px; height: 40px;
+    border: 3px solid #1f2937;
+    border-top-color: #8b5cf6;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<!-- LOADING -->
+<div id="loading">
+  <div class="spinner"></div>
+</div>
+
+<!-- SPLASH -->
+<div id="splash">
+  <div class="logo-box">🎵</div>
+  <div class="app-title">Makima Music</div>
+  <div class="app-subtitle">Premium Experience.<br>Tap to sync live with your room.</div>
+  <button id="startBtn" onclick="startListening()">START LISTENING</button>
+</div>
+
+<!-- NOTHING PLAYING -->
+<div id="nothing">
+  <div class="nothing-icon">🎧</div>
+  <div class="nothing-title">Nothing Playing</div>
+  <div class="nothing-sub">Use /play in the group<br>to start the music!</div>
+</div>
+
+<!-- PLAYER -->
+<div id="player">
+  <div class="player-header">
+    <span style="font-size:20px; cursor:pointer">⌄</span>
+    <span class="now-playing-label">NOW PLAYING</span>
+    <span class="queue-icon">☰</span>
+  </div>
+
+  <div class="thumb-container">
+    <img id="thumbnail" src="" alt="" onerror="this.style.display='none'"/>
+    <div class="thumb-placeholder" id="thumbPlaceholder" style="display:none">🎵</div>
+  </div>
+
+  <div class="song-info">
+    <div class="song-details">
+      <div id="songTitle">Loading...</div>
+      <div id="requestedBy">Added by —</div>
+    </div>
+    <div class="heart-btn" onclick="toggleHeart(this)">🤍</div>
+  </div>
+
+  <div class="waveform" id="waveform"></div>
+
+  <div class="progress-container">
+    <div id="progressBar"><div id="progressFill"></div></div>
+    <div class="time-labels">
+      <span id="currentTime">0:00</span>
+      <span id="totalTime">0:00</span>
+    </div>
+  </div>
+
+  <div class="controls">
+    <span class="ctrl-btn" onclick="shuffleClick()">🔀</span>
+    <span class="ctrl-btn" onclick="seekBack()">⏮</span>
+    <div class="play-pause-btn" id="playPauseBtn" onclick="togglePlay()">
+      <span id="playPauseIcon">⏸</span>
+    </div>
+    <span class="ctrl-btn" onclick="seekForward()">⏭</span>
+    <span class="ctrl-btn" onclick="toggleRepeat(this)">🔁</span>
+  </div>
+
+  <div id="vibingBadge">
+    <div class="vibe-dot"></div>
+    <span id="vibingCount">1 Vibing</span>
+  </div>
+</div>
+
+<!-- HIDDEN YOUTUBE IFRAME -->
+<div id="ytPlayer"></div>
+
+<!-- FIREBASE -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+  import { getDatabase, ref, onValue, set, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+  // ===== FIREBASE CONFIG =====
+  const firebaseConfig = {
+    apiKey: "AIzaSyBxo7vd1FbKX5QgXKwPA4Qy2KARGqo3tkc",
+    authDomain: "music-bot-ed1df.firebaseapp.com",
+    databaseURL: "https://music-bot-ed1df-default-rtdb.firebaseio.com",
+    projectId: "music-bot-ed1df",
+    storageBucket: "music-bot-ed1df.firebasestorage.app",
+    messagingSenderId: "667661301124",
+    appId: "1:667661301124:web:9f5e3aa5d2cd0c800859d1"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+
+  // ===== GLOBALS =====
+  let ytPlayer = null;
+  let currentVideoId = null;
+  let currentStartTime = null;
+  let currentDuration = 0;
+  let isPlaying = true;
+  let progressInterval = null;
+  let vibingKey = null;
+  let myVibingRef = null;
+  let chatId = null;
+
+  // ===== WAVEFORM GENERATE =====
+  function buildWaveform() {
+    const wf = document.getElementById('waveform');
+    wf.innerHTML = '';
+    for (let i = 0; i < 40; i++) {
+      const bar = document.createElement('div');
+      bar.className = 'wave-bar';
+      bar.style.animationDuration = (0.8 + Math.random() * 0.8) + 's';
+      wf.appendChild(bar);
+    }
+  }
+  buildWaveform();
+
+  // ===== YOUTUBE API =====
+  window.onYouTubeIframeAPIReady = function() {
+    console.log('YT API Ready');
+  }
+
+  function loadYouTubeAPI() {
+    if (window.YT) return;
+    const tag = document.createElement('script');
+    tag.src = "https://www.youtube.com/iframe_api";
+    document.head.appendChild(tag);
+  }
+
+  function createPlayer(videoId, seekTo) {
+    if (ytPlayer) {
+      ytPlayer.loadVideoById({ videoId: videoId, startSeconds: seekTo });
+      return;
+    }
+    ytPlayer = new YT.Player('ytPlayer', {
+      height: '1',
+      width: '1',
+      videoId: videoId,
+      playerVars: {
+        autoplay: 1,
+        controls: 0,
+        start: Math.floor(seekTo)
+      },
+      events: {
+        onReady: (e) => {
+          e.target.seekTo(seekTo, true);
+          e.target.playVideo();
+          currentDuration = e.target.getDuration();
+          updateTotalTime(currentDuration);
+          startProgressTracker();
+        },
+        onStateChange: (e) => {
+          if (e.data === YT.PlayerState.ENDED) {
+            // Song ended
+            document.getElementById('playPauseIcon').textContent = '▶';
+            isPlaying = false;
+          }
+        }
+      }
+    });
+  }
+
+  // ===== PROGRESS TRACKER =====
+  function startProgressTracker() {
+    if (progressInterval) clearInterval(progressInterval);
+    progressInterval = setInterval(() => {
+      if (!ytPlayer || !ytPlayer.getCurrentTime) return;
+      const current = ytPlayer.getCurrentTime();
+      const duration = ytPlayer.getDuration() || currentDuration;
+      if (duration > 0) {
+        const pct = (current / duration) * 100;
+        document.getElementById('progressFill').style.width = pct + '%';
+        document.getElementById('currentTime').textContent = formatTime(current);
+        document.getElementById('totalTime').textContent = formatTime(duration);
+      }
+    }, 1000);
+  }
+
+  function formatTime(sec) {
+    sec = Math.floor(sec);
+    const m = Math.floor(sec / 60);
+    const s = sec % 60;
+    return m + ':' + (s < 10 ? '0' : '') + s;
+  }
+
+  function updateTotalTime(sec) {
+    document.getElementById('totalTime').textContent = formatTime(sec);
+  }
+
+  // ===== START LISTENING =====
+  window.startListening = function() {
+    document.getElementById('splash').style.display = 'none';
+    document.getElementById('loading').style.display = 'flex';
+
+    // Get chat_id from URL params
+    const params = new URLSearchParams(window.location.search);
+    chatId = params.get('chat_id') || 'default';
+    vibingKey = 'user_' + Date.now();
+
+    loadYouTubeAPI();
+
+    // Listen to now_playing in Firebase
+    const nowPlayingRef = ref(db, 'rooms/' + chatId + '/now_playing');
+    onValue(nowPlayingRef, (snapshot) => {
+      document.getElementById('loading').style.display = 'none';
+      const data = snapshot.val();
+
+      if (!data || data.status === 'stopped') {
+        showNothing();
+        return;
+      }
+
+      showPlayer(data);
+    });
+
+    // Register as vibing
+    registerVibing(chatId);
+
+    // Listen to vibing count
+    const vibingRef = ref(db, 'rooms/' + chatId + '/vibing');
+    onValue(vibingRef, (snapshot) => {
+      const data = snapshot.val() || {};
+      const count = Object.keys(data).length;
+      document.getElementById('vibingCount').textContent = count + ' Vibing';
+    });
+  }
+
+  function showNothing() {
+    document.getElementById('player').style.display = 'none';
+    document.getElementById('nothing').style.display = 'flex';
+    if (ytPlayer) ytPlayer.stopVideo();
+    if (progressInterval) clearInterval(progressInterval);
+    removeVibing();
+  }
+
+  function showPlayer(data) {
+    document.getElementById('nothing').style.display = 'none';
+    document.getElementById('player').style.display = 'flex';
+
+    // Update UI
+    const title = data.title || 'Unknown';
+    document.getElementById('songTitle').textContent = title.length > 35 ? title.substring(0, 35) + '...' : title;
+    document.getElementById('requestedBy').textContent = 'Added by ' + (data.requested_by || 'Someone');
+
+    // Thumbnail
+    if (data.video_id) {
+      const thumb = document.getElementById('thumbnail');
+      thumb.src = 'https://img.youtube.com/vi/' + data.video_id + '/hqdefault.jpg';
+      thumb.style.display = 'block';
+      document.getElementById('thumbPlaceholder').style.display = 'none';
+    }
+
+    // Calculate seek position (SYNC!)
+    const now = Math.floor(Date.now() / 1000);
+    const elapsed = now - (data.start_time || now);
+    const seekTo = Math.max(0, elapsed);
+
+    // Load YouTube player
+    if (data.video_id && data.video_id !== currentVideoId) {
+      currentVideoId = data.video_id;
+      currentStartTime = data.start_time;
+      if (window.YT && window.YT.Player) {
+        createPlayer(data.video_id, seekTo);
+      } else {
+        // Wait for YT API
+        setTimeout(() => createPlayer(data.video_id, seekTo), 2000);
+      }
+    }
+
+    // Paused state
+    if (data.status === 'paused') {
+      pauseWaveform();
+      document.getElementById('playPauseIcon').textContent = '▶';
+      isPlaying = false;
+      if (ytPlayer) ytPlayer.pauseVideo();
+    } else {
+      resumeWaveform();
+      document.getElementById('playPauseIcon').textContent = '⏸';
+      isPlaying = true;
+      if (ytPlayer) ytPlayer.playVideo();
+    }
+  }
+
+  // ===== VIBING =====
+  function registerVibing(chatId) {
+    myVibingRef = ref(db, 'rooms/' + chatId + '/vibing/' + vibingKey);
+    set(myVibingRef, { time: Date.now() });
+
+    // Remove when leaving
+    window.addEventListener('beforeunload', removeVibing);
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) removeVibing();
+      else if (chatId) registerVibing(chatId);
+    });
+  }
+
+  function removeVibing() {
+    if (myVibingRef) set(myVibingRef, null);
+  }
+
+  // ===== CONTROLS =====
+  window.togglePlay = function() {
+    if (!ytPlayer) return;
+    if (isPlaying) {
+      ytPlayer.pauseVideo();
+      pauseWaveform();
+      document.getElementById('playPauseIcon').textContent = '▶';
+    } else {
+      ytPlayer.playVideo();
+      resumeWaveform();
+      document.getElementById('playPauseIcon').textContent = '⏸';
+    }
+    isPlaying = !isPlaying;
+  }
+
+  window.seekBack = function() {
+    if (ytPlayer) ytPlayer.seekTo(ytPlayer.getCurrentTime() - 10, true);
+  }
+
+  window.seekForward = function() {
+    if (ytPlayer) ytPlayer.seekTo(ytPlayer.getCurrentTime() + 10, true);
+  }
+
+  window.shuffleClick = function() {}
+  window.toggleRepeat = function(el) {
+    el.style.opacity = el.style.opacity === '1' ? '0.6' : '1';
+  }
+
+  window.toggleHeart = function(el) {
+    el.textContent = el.textContent === '🤍' ? '❤️' : '🤍';
+  }
+
+  function pauseWaveform() {
+    document.querySelectorAll('.wave-bar').forEach(b => b.classList.add('paused'));
+  }
+
+  function resumeWaveform() {
+    document.querySelectorAll('.wave-bar').forEach(b => b.classList.remove('paused'));
+  }
+
+  // Hide loading on load
+  window.addEventListener('load', () => {
+    setTimeout(() => {
+      document.getElementById('loading').style.display = 'none';
+    }, 1000);
+  });
+</script>
+
+<!-- YouTube iframe API -->
+<script src="https://www.youtube.com/iframe_api"></script>
+
+</body>
+  </html>
