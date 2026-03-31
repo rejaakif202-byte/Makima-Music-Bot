@@ -4,12 +4,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Makima Music 🎵</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Exo+2:wght@300;400;600&display=swap" rel="stylesheet">
 <style>
   :root {
     --bg-primary: #0B0C10;
     --bg-secondary: #1F2833;
-    --bg-card: #0d1117;
     --accent: #66FCF1;
     --accent2: #45A29E;
     --text-primary: #C5C6C7;
@@ -17,523 +17,79 @@
     --glow: rgba(102, 252, 241, 0.4);
     --glow-soft: rgba(102, 252, 241, 0.15);
   }
-
   * { margin: 0; padding: 0; box-sizing: border-box; }
-
-  body {
-    background: var(--bg-primary);
-    color: var(--text-primary);
-    font-family: 'Exo 2', sans-serif;
-    min-height: 100vh;
-    overflow-x: hidden;
-  }
-
-  /* GRID BACKGROUND */
-  body::before {
-    content: '';
-    position: fixed;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    background-image:
-      linear-gradient(rgba(102,252,241,0.03) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(102,252,241,0.03) 1px, transparent 1px);
-    background-size: 40px 40px;
-    pointer-events: none;
-    z-index: 0;
-  }
-
-  /* LOADING */
-  #loading {
-    position: fixed;
-    top: 0; left: 0;
-    width: 100vw; height: 100vh;
-    background: var(--bg-primary);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    z-index: 1000;
-    gap: 16px;
-  }
-
-  .spinner-ring {
-    width: 48px; height: 48px;
-    border: 2px solid var(--bg-secondary);
-    border-top-color: var(--accent);
-    border-radius: 50%;
-    animation: spin 0.8s linear infinite;
-    box-shadow: 0 0 20px var(--glow);
-  }
-
-  .loading-text {
-    font-family: 'Rajdhani', sans-serif;
-    font-size: 12px;
-    letter-spacing: 4px;
-    color: var(--accent2);
-    text-transform: uppercase;
-  }
-
+  body { background: var(--bg-primary); color: var(--text-primary); font-family: 'Exo 2', sans-serif; min-height: 100vh; overflow-x: hidden; }
+  body::before { content: ''; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-image: linear-gradient(rgba(102,252,241,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(102,252,241,0.03) 1px, transparent 1px); background-size: 40px 40px; pointer-events: none; z-index: 0; }
+  #loading { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: var(--bg-primary); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 1000; gap: 16px; }
+  .spinner-ring { width: 48px; height: 48px; border: 2px solid var(--bg-secondary); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; box-shadow: 0 0 20px var(--glow); }
+  .loading-text { font-family: 'Rajdhani', sans-serif; font-size: 12px; letter-spacing: 4px; color: var(--accent2); text-transform: uppercase; }
   @keyframes spin { to { transform: rotate(360deg); } }
-
-  /* SPLASH */
-  #splash {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    height: 100vh;
-    width: 100vw;
-    position: fixed;
-    top: 0; left: 0;
-    z-index: 100;
-    padding: 40px;
-  }
-
-  .splash-logo {
-    position: relative;
-    margin-bottom: 32px;
-  }
-
-  .logo-icon {
-    width: 90px;
-    height: 90px;
-    background: var(--bg-secondary);
-    border: 1px solid var(--accent2);
-    border-radius: 20px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 42px;
-    position: relative;
-    z-index: 1;
-    box-shadow: 0 0 30px var(--glow-soft), inset 0 0 20px rgba(102,252,241,0.05);
-  }
-
-  .logo-ring {
-    position: absolute;
-    top: -8px; left: -8px;
-    width: 106px; height: 106px;
-    border: 1px solid rgba(102,252,241,0.2);
-    border-radius: 26px;
-    animation: rotate-ring 8s linear infinite;
-  }
-
-  @keyframes rotate-ring {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
-  }
-
-  .splash-title {
-    font-family: 'Rajdhani', sans-serif;
-    font-size: 36px;
-    font-weight: 700;
-    color: var(--text-bright);
-    letter-spacing: 3px;
-    text-transform: uppercase;
-    margin-bottom: 6px;
-  }
-
-  .splash-title span {
-    color: var(--accent);
-    text-shadow: 0 0 20px var(--glow);
-  }
-
-  .splash-sub {
-    font-size: 13px;
-    color: var(--accent2);
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    margin-bottom: 60px;
-    text-align: center;
-    opacity: 0.8;
-  }
-
-  #startBtn {
-    background: transparent;
-    color: var(--accent);
-    border: 1px solid var(--accent);
-    padding: 16px 56px;
-    border-radius: 4px;
-    font-family: 'Rajdhani', sans-serif;
-    font-size: 16px;
-    font-weight: 700;
-    letter-spacing: 4px;
-    text-transform: uppercase;
-    cursor: pointer;
-    position: relative;
-    overflow: hidden;
-    transition: all 0.3s;
-    box-shadow: 0 0 20px var(--glow-soft);
-  }
-
-  #startBtn::before {
-    content: '';
-    position: absolute;
-    top: 0; left: -100%;
-    width: 100%; height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(102,252,241,0.1), transparent);
-    transition: left 0.5s;
-  }
-
-  #startBtn:hover::before { left: 100%; }
-  #startBtn:hover {
-    box-shadow: 0 0 30px var(--glow);
-    background: rgba(102,252,241,0.05);
-  }
+  #splash { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; width: 100vw; position: fixed; top: 0; left: 0; z-index: 100; padding: 40px; }
+  .splash-logo { position: relative; margin-bottom: 32px; }
+  .logo-icon { width: 90px; height: 90px; background: var(--bg-secondary); border: 1px solid var(--accent2); border-radius: 20px; display: flex; align-items: center; justify-content: center; font-size: 42px; position: relative; z-index: 1; box-shadow: 0 0 30px var(--glow-soft); }
+  .logo-ring { position: absolute; top: -8px; left: -8px; width: 106px; height: 106px; border: 1px solid rgba(102,252,241,0.2); border-radius: 26px; animation: rotate-ring 8s linear infinite; }
+  @keyframes rotate-ring { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+  .splash-title { font-family: 'Rajdhani', sans-serif; font-size: 36px; font-weight: 700; color: var(--text-bright); letter-spacing: 3px; text-transform: uppercase; margin-bottom: 6px; }
+  .splash-title span { color: var(--accent); text-shadow: 0 0 20px var(--glow); }
+  .splash-sub { font-size: 13px; color: var(--accent2); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 60px; text-align: center; opacity: 0.8; }
+  #startBtn { background: transparent; color: var(--accent); border: 1px solid var(--accent); padding: 16px 56px; border-radius: 4px; font-family: 'Rajdhani', sans-serif; font-size: 16px; font-weight: 700; letter-spacing: 4px; text-transform: uppercase; cursor: pointer; transition: all 0.3s; box-shadow: 0 0 20px var(--glow-soft); }
   #startBtn:active { transform: scale(0.97); }
-
-  /* NOTHING PLAYING */
-  #nothing {
-    display: none;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    height: 100vh;
-    text-align: center;
-    padding: 40px;
-    position: relative;
-    z-index: 1;
-  }
-
-  .nothing-icon {
-    font-size: 64px;
-    margin-bottom: 20px;
-    filter: drop-shadow(0 0 20px var(--glow));
-  }
-
-  .nothing-title {
-    font-family: 'Rajdhani', sans-serif;
-    font-size: 24px;
-    font-weight: 700;
-    color: var(--text-bright);
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    margin-bottom: 8px;
-  }
-
-  .nothing-sub {
-    font-size: 13px;
-    color: var(--accent2);
-    letter-spacing: 1px;
-    line-height: 1.8;
-  }
-
-  /* PLAYER */
-  #player {
-    display: none;
-    flex-direction: column;
-    align-items: center;
-    width: 100vw;
-    min-height: 100vh;
-    padding: 20px 20px 40px;
-    position: relative;
-    z-index: 1;
-  }
-
-  /* TOP BAR */
-  .top-bar {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    width: 100%;
-    max-width: 380px;
-    padding: 10px 0 24px;
-  }
-
-  .top-bar-btn {
-    width: 36px; height: 36px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: 1px solid rgba(102,252,241,0.15);
-    border-radius: 8px;
-    cursor: pointer;
-    color: var(--accent2);
-    font-size: 14px;
-    transition: all 0.2s;
-  }
-
-  .top-bar-btn:active {
-    border-color: var(--accent);
-    color: var(--accent);
-    box-shadow: 0 0 10px var(--glow-soft);
-  }
-
-  .now-playing-label {
-    font-family: 'Rajdhani', sans-serif;
-    font-size: 11px;
-    letter-spacing: 4px;
-    color: var(--accent);
-    text-transform: uppercase;
-    text-shadow: 0 0 10px var(--glow);
-  }
-
-  /* THUMBNAIL */
-  .thumb-wrap {
-    width: 100%;
-    max-width: 340px;
-    position: relative;
-    margin-bottom: 24px;
-  }
-
-  .thumb-border {
-    position: absolute;
-    top: -3px; left: -3px;
-    right: -3px; bottom: -3px;
-    border: 1px solid rgba(102,252,241,0.25);
-    border-radius: 18px;
-    pointer-events: none;
-  }
-
-  .thumb-corner {
-    position: absolute;
-    width: 16px; height: 16px;
-    border-color: var(--accent);
-    border-style: solid;
-    opacity: 0.8;
-  }
-
+  #nothing { display: none; flex-direction: column; align-items: center; justify-content: center; height: 100vh; text-align: center; padding: 40px; position: relative; z-index: 1; }
+  .nothing-icon { font-size: 64px; margin-bottom: 20px; filter: drop-shadow(0 0 20px var(--glow)); }
+  .nothing-title { font-family: 'Rajdhani', sans-serif; font-size: 24px; font-weight: 700; color: var(--text-bright); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 8px; }
+  .nothing-sub { font-size: 13px; color: var(--accent2); letter-spacing: 1px; line-height: 1.8; }
+  #player { display: none; flex-direction: column; align-items: center; width: 100vw; min-height: 100vh; padding: 20px 20px 40px; position: relative; z-index: 1; }
+  .top-bar { display: flex; align-items: center; justify-content: space-between; width: 100%; max-width: 380px; padding: 10px 0 24px; }
+  .top-bar-btn { width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(102,252,241,0.15); border-radius: 8px; cursor: pointer; color: var(--accent2); font-size: 14px; }
+  .now-playing-label { font-family: 'Rajdhani', sans-serif; font-size: 11px; letter-spacing: 4px; color: var(--accent); text-transform: uppercase; text-shadow: 0 0 10px var(--glow); }
+  .thumb-wrap { width: 100%; max-width: 340px; position: relative; margin-bottom: 24px; }
+  .thumb-border { position: absolute; top: -3px; left: -3px; right: -3px; bottom: -3px; border: 1px solid rgba(102,252,241,0.25); border-radius: 18px; pointer-events: none; }
+  .thumb-corner { position: absolute; width: 16px; height: 16px; border-color: var(--accent); border-style: solid; opacity: 0.8; }
   .thumb-corner.tl { top: -4px; left: -4px; border-width: 2px 0 0 2px; border-radius: 4px 0 0 0; }
   .thumb-corner.tr { top: -4px; right: -4px; border-width: 2px 2px 0 0; border-radius: 0 4px 0 0; }
   .thumb-corner.bl { bottom: -4px; left: -4px; border-width: 0 0 2px 2px; border-radius: 0 0 0 4px; }
   .thumb-corner.br { bottom: -4px; right: -4px; border-width: 0 2px 2px 0; border-radius: 0 0 4px 0; }
-
-  #thumbnail {
-    width: 100%;
-    aspect-ratio: 16/9;
-    border-radius: 14px;
-    object-fit: cover;
-    display: block;
-    box-shadow: 0 10px 40px rgba(0,0,0,0.6), 0 0 30px var(--glow-soft);
-  }
-
-  /* SONG INFO */
-  .song-row {
-    width: 100%;
-    max-width: 340px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 20px;
-  }
-
-  #songTitle {
-    font-family: 'Rajdhani', sans-serif;
-    font-size: 20px;
-    font-weight: 700;
-    color: var(--text-bright);
-    letter-spacing: 0.5px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-width: 270px;
-  }
-
-  #requestedBy {
-    font-size: 12px;
-    color: var(--accent2);
-    letter-spacing: 1px;
-    margin-top: 3px;
-    text-transform: uppercase;
-  }
-
-  .heart-btn {
-    font-size: 20px;
-    cursor: pointer;
-    transition: transform 0.2s;
-    filter: drop-shadow(0 0 6px rgba(102,252,241,0.4));
-  }
-
+  #thumbnail { width: 100%; aspect-ratio: 16/9; border-radius: 14px; object-fit: cover; display: block; box-shadow: 0 10px 40px rgba(0,0,0,0.6), 0 0 30px var(--glow-soft); }
+  .song-row { width: 100%; max-width: 340px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+  #songTitle { font-family: 'Rajdhani', sans-serif; font-size: 20px; font-weight: 700; color: var(--text-bright); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 270px; }
+  #requestedBy { font-size: 12px; color: var(--accent2); letter-spacing: 1px; margin-top: 3px; text-transform: uppercase; }
+  .heart-btn { font-size: 20px; cursor: pointer; transition: transform 0.2s; }
   .heart-btn:active { transform: scale(1.3); }
-
-  /* WAVEFORM */
-  .waveform {
-    width: 100%;
-    max-width: 340px;
-    height: 48px;
-    display: flex;
-    align-items: center;
-    gap: 2px;
-    margin-bottom: 14px;
-  }
-
-  .wave-bar {
-    flex: 1;
-    background: var(--accent);
-    border-radius: 2px;
-    animation: wave 1s ease-in-out infinite;
-    opacity: 0.6;
-    box-shadow: 0 0 4px var(--glow);
-  }
-
+  .waveform { width: 100%; max-width: 340px; height: 48px; display: flex; align-items: center; gap: 2px; margin-bottom: 14px; }
+  .wave-bar { flex: 1; background: var(--accent); border-radius: 2px; animation: wave 1s ease-in-out infinite; opacity: 0.6; box-shadow: 0 0 4px var(--glow); }
   .wave-bar:nth-child(2n) { animation-duration: 1.3s; opacity: 0.4; }
   .wave-bar:nth-child(3n) { animation-duration: 0.9s; opacity: 0.7; }
   .wave-bar:nth-child(4n) { animation-duration: 1.5s; opacity: 0.35; }
   .wave-bar:nth-child(5n) { animation-duration: 1.1s; opacity: 0.55; }
-
-  @keyframes wave {
-    0%, 100% { height: 15%; }
-    50% { height: 85%; }
-  }
-
+  @keyframes wave { 0%, 100% { height: 15%; } 50% { height: 85%; } }
   .wave-bar.paused { animation-play-state: paused; }
-
-  /* PROGRESS */
-  .progress-wrap {
-    width: 100%;
-    max-width: 340px;
-    margin-bottom: 8px;
-  }
-
-  #progressBar {
-    width: 100%;
-    height: 3px;
-    background: var(--bg-secondary);
-    border-radius: 3px;
-    margin-bottom: 8px;
-    overflow: visible;
-    position: relative;
-  }
-
-  #progressFill {
-    height: 100%;
-    background: var(--accent);
-    border-radius: 3px;
-    width: 0%;
-    transition: width 1s linear;
-    box-shadow: 0 0 8px var(--glow);
-    position: relative;
-  }
-
-  #progressFill::after {
-    content: '';
-    position: absolute;
-    right: -4px; top: -4px;
-    width: 10px; height: 10px;
-    background: var(--accent);
-    border-radius: 50%;
-    box-shadow: 0 0 8px var(--glow);
-  }
-
-  .time-row {
-    display: flex;
-    justify-content: space-between;
-    font-size: 11px;
-    color: var(--accent2);
-    letter-spacing: 1px;
-    font-family: 'Rajdhani', sans-serif;
-  }
-
-  /* CONTROLS */
-  .controls {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    width: 100%;
-    max-width: 320px;
-    margin: 20px 0 28px;
-  }
-
-  .ctrl-btn {
-    width: 44px; height: 44px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: 1px solid rgba(102,252,241,0.2);
-    border-radius: 10px;
-    cursor: pointer;
-    color: var(--accent);
-    font-size: 18px;
-    transition: all 0.2s;
-    background: rgba(102,252,241,0.03);
-  }
-
-  .ctrl-btn:active {
-    border-color: var(--accent);
-    box-shadow: 0 0 15px var(--glow);
-    background: rgba(102,252,241,0.08);
-    transform: scale(0.93);
-  }
-
-  .ctrl-btn.active {
-    border-color: var(--accent);
-    box-shadow: 0 0 10px var(--glow-soft);
-  }
-
-  .play-btn {
-    width: 60px; height: 60px;
-    border-radius: 14px;
-    border: 1px solid var(--accent);
-    background: rgba(102,252,241,0.08);
-    box-shadow: 0 0 25px var(--glow-soft);
-    font-size: 22px;
-    color: var(--accent);
-  }
-
-  .play-btn:active {
-    box-shadow: 0 0 35px var(--glow);
-    transform: scale(0.93);
-  }
-
-  /* VIBING */
-  #vibingBadge {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    background: var(--bg-secondary);
-    border: 1px solid rgba(102,252,241,0.15);
-    border-radius: 50px;
-    padding: 10px 22px;
-    font-family: 'Rajdhani', sans-serif;
-    font-size: 14px;
-    font-weight: 600;
-    letter-spacing: 2px;
-    color: var(--text-primary);
-    text-transform: uppercase;
-  }
-
-  .vibe-dot {
-    width: 7px; height: 7px;
-    background: var(--accent);
-    border-radius: 50%;
-    box-shadow: 0 0 8px var(--glow);
-    animation: pulse 2s infinite;
-  }
-
-  @keyframes pulse {
-    0%, 100% { opacity: 1; box-shadow: 0 0 8px var(--glow); }
-    50% { opacity: 0.4; box-shadow: 0 0 3px var(--glow); }
-  }
-
-  /* SCANLINE EFFECT */
-  #player::after {
-    content: '';
-    position: fixed;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    background: repeating-linear-gradient(
-      0deg,
-      rgba(0,0,0,0.03) 0px,
-      rgba(0,0,0,0.03) 1px,
-      transparent 1px,
-      transparent 3px
-    );
-    pointer-events: none;
-    z-index: 0;
-  }
-
+  .progress-wrap { width: 100%; max-width: 340px; margin-bottom: 8px; }
+  #progressBar { width: 100%; height: 3px; background: var(--bg-secondary); border-radius: 3px; margin-bottom: 8px; overflow: visible; position: relative; }
+  #progressFill { height: 100%; background: var(--accent); border-radius: 3px; width: 0%; transition: width 1s linear; box-shadow: 0 0 8px var(--glow); position: relative; }
+  #progressFill::after { content: ''; position: absolute; right: -4px; top: -4px; width: 10px; height: 10px; background: var(--accent); border-radius: 50%; box-shadow: 0 0 8px var(--glow); }
+  .time-row { display: flex; justify-content: space-between; font-size: 11px; color: var(--accent2); letter-spacing: 1px; font-family: 'Rajdhani', sans-serif; }
+  .controls { display: flex; align-items: center; justify-content: space-between; width: 100%; max-width: 320px; margin: 20px 0 28px; }
+  .ctrl-btn { width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; border: none; background: transparent; cursor: pointer; transition: all 0.2s; opacity: 0.75; }
+  .ctrl-btn:active { opacity: 1; filter: drop-shadow(0 0 8px var(--accent)); transform: scale(0.9); }
+  .ctrl-btn.active { opacity: 1; filter: drop-shadow(0 0 6px var(--accent)); }
+  .ctrl-btn svg { width: 26px; height: 26px; fill: var(--accent); }
+  .ctrl-btn.sm svg { width: 20px; height: 20px; }
+  .play-btn { width: 64px; height: 64px; border-radius: 50%; border: none; background: var(--accent); box-shadow: 0 0 30px var(--glow); opacity: 1 !important; }
+  .play-btn svg { fill: var(--bg-primary) !important; width: 24px; height: 24px; }
+  .play-btn:active { transform: scale(0.92); }
+  #vibingBadge { display: flex; align-items: center; gap: 10px; background: var(--bg-secondary); border: 1px solid rgba(102,252,241,0.15); border-radius: 50px; padding: 10px 22px; font-family: 'Rajdhani', sans-serif; font-size: 14px; font-weight: 600; letter-spacing: 2px; color: var(--text-primary); text-transform: uppercase; }
+  .vibe-dot { width: 7px; height: 7px; background: var(--accent); border-radius: 50%; box-shadow: 0 0 8px var(--glow); animation: pulse 2s infinite; }
+  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
   #ytPlayer { display: none; }
 </style>
 </head>
 <body>
 
-<!-- LOADING -->
 <div id="loading">
   <div class="spinner-ring"></div>
   <div class="loading-text">Connecting</div>
 </div>
 
-<!-- SPLASH -->
 <div id="splash">
   <div class="splash-logo">
     <div class="logo-icon">🎵</div>
@@ -544,22 +100,18 @@
   <button id="startBtn" onclick="startListening()">▶ START LISTENING</button>
 </div>
 
-<!-- NOTHING PLAYING -->
 <div id="nothing">
   <div class="nothing-icon">📡</div>
   <div class="nothing-title">No Signal</div>
   <div class="nothing-sub">Use /play in the group<br>to start the music</div>
 </div>
 
-<!-- PLAYER -->
 <div id="player">
-
   <div class="top-bar">
     <div class="top-bar-btn">⌄</div>
     <div class="now-playing-label">◆ Now Playing ◆</div>
     <div class="top-bar-btn">☰</div>
   </div>
-
   <div class="thumb-wrap">
     <img id="thumbnail" src="" alt=""/>
     <div class="thumb-border"></div>
@@ -568,7 +120,6 @@
     <div class="thumb-corner bl"></div>
     <div class="thumb-corner br"></div>
   </div>
-
   <div class="song-row">
     <div>
       <div id="songTitle">Loading...</div>
@@ -576,9 +127,7 @@
     </div>
     <div class="heart-btn" onclick="toggleHeart(this)">🤍</div>
   </div>
-
   <div class="waveform" id="waveform"></div>
-
   <div class="progress-wrap">
     <div id="progressBar"><div id="progressFill"></div></div>
     <div class="time-row">
@@ -586,29 +135,35 @@
       <span id="totalTime">0:00</span>
     </div>
   </div>
-
   <div class="controls">
-    <div class="ctrl-btn" onclick="shuffleClick(this)">⇄</div>
-    <div class="ctrl-btn" onclick="seekBack()">⏮</div>
-    <div class="ctrl-btn play-btn" id="playPauseBtn" onclick="togglePlay()">
-      <span id="playPauseIcon">⏸</span>
+    <div class="ctrl-btn sm" id="shuffleBtn" onclick="shuffleClick(this)">
+      <svg viewBox="0 0 24 24"><path d="M16 3h5v5l-1.8-1.8-4.6 4.6-1.4-1.4 4.6-4.6L16 3zM4 5l6.1 6.1-1.4 1.4L3 6.8 4 5zm14.6 9.9l4.6 4.6L21 21h-5v-2h3.2l-4.6-4.6 1.4-1.4zM3.4 17.2l5.6-5.6 1.4 1.4-5.6 5.6L3.4 17.2z"/></svg>
     </div>
-    <div class="ctrl-btn" onclick="seekForward()">⏭</div>
-    <div class="ctrl-btn" onclick="toggleRepeat(this)">↻</div>
+    <div class="ctrl-btn" onclick="seekBack()">
+      <svg viewBox="0 0 24 24"><path d="M6 6h2v12H6zm3.5 6 8.5 6V6z"/></svg>
+    </div>
+    <div class="ctrl-btn play-btn" id="playPauseBtn" onclick="togglePlay()">
+      <svg id="playIcon" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+      <svg id="pauseIcon" viewBox="0 0 24 24" style="display:none"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+    </div>
+    <div class="ctrl-btn" onclick="seekForward()">
+      <svg viewBox="0 0 24 24"><path d="M6 18l8.5-6L6 6v12zm2-8.14L11.03 12 8 14.14V9.86zM16 6h2v12h-2z"/></svg>
+    </div>
+    <div class="ctrl-btn sm" id="repeatBtn" onclick="toggleRepeat(this)">
+      <svg viewBox="0 0 24 24"><path d="M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4z"/></svg>
+    </div>
   </div>
-
   <div id="vibingBadge">
     <div class="vibe-dot"></div>
     <span id="vibingCount">1 Vibing</span>
   </div>
-
 </div>
 
 <div id="ytPlayer"></div>
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-  import { getDatabase, ref, onValue, set } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+  import { getDatabase, ref, onValue, set, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyBxo7vd1FbKX5QgXKwPA4Qy2KARGqo3tkc",
@@ -631,7 +186,6 @@
   let vibingKey = 'user_' + Date.now();
   let chatId = null;
 
-  // Build waveform
   function buildWaveform() {
     const wf = document.getElementById('waveform');
     wf.innerHTML = '';
@@ -662,14 +216,11 @@
       height: '1', width: '1', videoId,
       playerVars: { autoplay: 1, controls: 0, start: Math.floor(seekTo) },
       events: {
-        onReady: e => {
-          e.target.seekTo(seekTo, true);
-          e.target.playVideo();
-          startProgress();
-        },
+        onReady: e => { e.target.seekTo(seekTo, true); e.target.playVideo(); startProgress(); },
         onStateChange: e => {
           if (e.data === YT.PlayerState.ENDED) {
-            document.getElementById('playPauseIcon').textContent = '▶';
+            document.getElementById('playIcon').style.display = 'block';
+            document.getElementById('pauseIcon').style.display = 'none';
             isPlaying = false;
             pauseWave();
           }
@@ -696,12 +247,34 @@
   }
 
   window.startListening = function() {
+    if (window.Telegram && window.Telegram.WebApp) {
+      Telegram.WebApp.expand();
+      Telegram.WebApp.onEvent('activated', function() {
+        if (chatId && currentVideoId) {
+          get(ref(db, 'rooms/' + chatId + '/now_playing')).then(snap => {
+            const data = snap.val();
+            if (data && data.status === 'playing') {
+              const now = Math.floor(Date.now() / 1000);
+              const elapsed = now - (data.start_time || now);
+              if (ytPlayer && ytPlayer.seekTo) {
+                ytPlayer.seekTo(elapsed, true);
+                ytPlayer.playVideo();
+                resumeWave();
+                document.getElementById('playIcon').style.display = 'none';
+                document.getElementById('pauseIcon').style.display = 'block';
+                isPlaying = true;
+              }
+            }
+          });
+        }
+      });
+    }
+
     document.getElementById('splash').style.display = 'none';
     document.getElementById('loading').style.display = 'flex';
 
     const params = new URLSearchParams(window.location.search);
     chatId = params.get('chat_id') || 'default';
-
     loadYT();
 
     onValue(ref(db, 'rooms/' + chatId + '/now_playing'), snap => {
@@ -729,36 +302,28 @@
   function showPlayer(data) {
     document.getElementById('nothing').style.display = 'none';
     document.getElementById('player').style.display = 'flex';
-
     const title = data.title || 'Unknown';
     document.getElementById('songTitle').textContent = title.length > 32 ? title.substring(0,32)+'...' : title;
     document.getElementById('requestedBy').textContent = 'Added by ' + (data.requested_by || 'Someone');
-
-    if (data.video_id) {
-      document.getElementById('thumbnail').src = 'https://img.youtube.com/vi/' + data.video_id + '/hqdefault.jpg';
-    }
-
+    if (data.video_id) document.getElementById('thumbnail').src = 'https://img.youtube.com/vi/' + data.video_id + '/hqdefault.jpg';
     const now = Math.floor(Date.now() / 1000);
     const elapsed = now - (data.start_time || now);
     const seekTo = Math.max(0, elapsed);
-
     if (data.video_id && data.video_id !== currentVideoId) {
       currentVideoId = data.video_id;
-      if (window.YT && window.YT.Player) {
-        createPlayer(data.video_id, seekTo);
-      } else {
-        setTimeout(() => createPlayer(data.video_id, seekTo), 2000);
-      }
+      if (window.YT && window.YT.Player) createPlayer(data.video_id, seekTo);
+      else setTimeout(() => createPlayer(data.video_id, seekTo), 2000);
     }
-
     if (data.status === 'paused') {
       pauseWave();
-      document.getElementById('playPauseIcon').textContent = '▶';
+      document.getElementById('playIcon').style.display = 'block';
+      document.getElementById('pauseIcon').style.display = 'none';
       isPlaying = false;
       if (ytPlayer) ytPlayer.pauseVideo();
     } else {
       resumeWave();
-      document.getElementById('playPauseIcon').textContent = '⏸';
+      document.getElementById('playIcon').style.display = 'none';
+      document.getElementById('pauseIcon').style.display = 'block';
       isPlaying = true;
       if (ytPlayer) ytPlayer.playVideo();
     }
@@ -776,8 +341,15 @@
 
   window.togglePlay = function() {
     if (!ytPlayer) return;
-    if (isPlaying) { ytPlayer.pauseVideo(); pauseWave(); document.getElementById('playPauseIcon').textContent = '▶'; }
-    else { ytPlayer.playVideo(); resumeWave(); document.getElementById('playPauseIcon').textContent = '⏸'; }
+    if (isPlaying) {
+      ytPlayer.pauseVideo(); pauseWave();
+      document.getElementById('playIcon').style.display = 'block';
+      document.getElementById('pauseIcon').style.display = 'none';
+    } else {
+      ytPlayer.playVideo(); resumeWave();
+      document.getElementById('playIcon').style.display = 'none';
+      document.getElementById('pauseIcon').style.display = 'block';
+    }
     isPlaying = !isPlaying;
   };
 
@@ -786,15 +358,10 @@
   window.shuffleClick = function(el) { el.classList.toggle('active'); };
   window.toggleRepeat = function(el) { el.classList.toggle('active'); };
   window.toggleHeart = function(el) { el.textContent = el.textContent === '🤍' ? '🩵' : '🤍'; };
-
   function pauseWave() { document.querySelectorAll('.wave-bar').forEach(b => b.classList.add('paused')); }
   function resumeWave() { document.querySelectorAll('.wave-bar').forEach(b => b.classList.remove('paused')); }
-
-  window.addEventListener('load', () => {
-    setTimeout(() => { document.getElementById('loading').style.display = 'none'; }, 800);
-  });
+  window.addEventListener('load', () => { setTimeout(() => { document.getElementById('loading').style.display = 'none'; }, 800); });
 </script>
-
 <script src="https://www.youtube.com/iframe_api"></script>
 </body>
 </html>
