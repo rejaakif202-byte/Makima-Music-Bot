@@ -14,8 +14,8 @@
     --accent2: #45A29E;
     --text-primary: #C5C6C7;
     --text-bright: #ffffff;
-    --glow: rgba(102, 252, 241, 0.4);
-    --glow-soft: rgba(102, 252, 241, 0.15);
+    --glow: rgba(102,252,241,0.4);
+    --glow-soft: rgba(102,252,241,0.15);
   }
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body { background: var(--bg-primary); color: var(--text-primary); font-family: 'Exo 2', sans-serif; min-height: 100vh; overflow-x: hidden; }
@@ -26,7 +26,7 @@
   @keyframes spin { to { transform: rotate(360deg); } }
   #splash { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; width: 100vw; position: fixed; top: 0; left: 0; z-index: 100; padding: 40px; }
   .splash-logo { position: relative; margin-bottom: 32px; }
-  .logo-icon { width: 90px; height: 90px; background: var(--bg-secondary); border: 1px solid var(--accent2); border-radius: 20px; display: flex; align-items: center; justify-content: center; font-size: 42px; position: relative; z-index: 1; box-shadow: 0 0 30px var(--glow-soft); }
+  .logo-icon { width: 90px; height: 90px; background: var(--bg-secondary); border: 1px solid var(--accent2); border-radius: 20px; display: flex; align-items: center; justify-content: center; font-size: 42px; z-index: 1; box-shadow: 0 0 30px var(--glow-soft); position: relative; }
   .logo-ring { position: absolute; top: -8px; left: -8px; width: 106px; height: 106px; border: 1px solid rgba(102,252,241,0.2); border-radius: 26px; animation: rotate-ring 8s linear infinite; }
   @keyframes rotate-ring { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
   .splash-title { font-family: 'Rajdhani', sans-serif; font-size: 36px; font-weight: 700; color: var(--text-bright); letter-spacing: 3px; text-transform: uppercase; margin-bottom: 6px; }
@@ -77,9 +77,85 @@
   .play-btn { width: 64px; height: 64px; border-radius: 50%; border: none; background: var(--accent); box-shadow: 0 0 30px var(--glow); opacity: 1 !important; }
   .play-btn svg { fill: var(--bg-primary) !important; width: 24px; height: 24px; }
   .play-btn:active { transform: scale(0.92); }
-  #vibingBadge { display: flex; align-items: center; gap: 10px; background: var(--bg-secondary); border: 1px solid rgba(102,252,241,0.15); border-radius: 50px; padding: 10px 22px; font-family: 'Rajdhani', sans-serif; font-size: 14px; font-weight: 600; letter-spacing: 2px; color: var(--text-primary); text-transform: uppercase; }
+
+  /* VIBING BADGE */
+  #vibingBadge {
+    display: flex; align-items: center; gap: 10px;
+    background: var(--bg-secondary);
+    border: 1px solid rgba(102,252,241,0.15);
+    border-radius: 50px; padding: 10px 22px;
+    font-family: 'Rajdhani', sans-serif; font-size: 14px;
+    font-weight: 600; letter-spacing: 2px;
+    color: var(--text-primary); text-transform: uppercase;
+    cursor: pointer; transition: all 0.2s;
+  }
+  #vibingBadge:active { border-color: var(--accent); box-shadow: 0 0 10px var(--glow-soft); }
+  .vibe-avatars { display: flex; margin-right: 4px; }
+  .vibe-avatar { width: 24px; height: 24px; border-radius: 50%; border: 2px solid var(--bg-primary); margin-left: -8px; object-fit: cover; background: var(--bg-secondary); }
+  .vibe-avatar:first-child { margin-left: 0; }
   .vibe-dot { width: 7px; height: 7px; background: var(--accent); border-radius: 50%; box-shadow: 0 0 8px var(--glow); animation: pulse 2s infinite; }
   @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+  /* VIBING MODAL */
+  #vibingModal {
+    display: none;
+    position: fixed; top: 0; left: 0;
+    width: 100vw; height: 100vh;
+    background: rgba(0,0,0,0.7);
+    z-index: 500;
+    align-items: flex-end;
+    justify-content: center;
+    backdrop-filter: blur(4px);
+  }
+  #vibingModal.open { display: flex; }
+  .modal-box {
+    background: var(--bg-secondary);
+    border: 1px solid rgba(102,252,241,0.2);
+    border-radius: 20px 20px 0 0;
+    width: 100%; max-width: 480px;
+    padding: 24px;
+    max-height: 70vh;
+    overflow-y: auto;
+  }
+  .modal-title {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 14px; letter-spacing: 3px;
+    color: var(--accent); text-transform: uppercase;
+    margin-bottom: 20px; text-align: center;
+    text-shadow: 0 0 10px var(--glow);
+  }
+  .modal-close {
+    position: absolute; top: 16px; right: 20px;
+    font-size: 20px; cursor: pointer; color: var(--accent2);
+  }
+  .user-item {
+    display: flex; align-items: center; gap: 14px;
+    padding: 12px 0;
+    border-bottom: 1px solid rgba(102,252,241,0.06);
+  }
+  .user-item:last-child { border-bottom: none; }
+  .user-pfp {
+    width: 44px; height: 44px; border-radius: 50%;
+    object-fit: cover;
+    border: 1px solid rgba(102,252,241,0.2);
+    background: var(--bg-primary);
+    flex-shrink: 0;
+  }
+  .user-pfp-placeholder {
+    width: 44px; height: 44px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent2), var(--bg-primary));
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Rajdhani', sans-serif; font-size: 18px; font-weight: 700;
+    color: var(--text-bright); flex-shrink: 0;
+    border: 1px solid rgba(102,252,241,0.2);
+  }
+  .user-info { flex: 1; }
+  .user-name { font-family: 'Rajdhani', sans-serif; font-size: 16px; font-weight: 700; color: var(--text-bright); }
+  .user-id { font-size: 11px; color: var(--accent2); letter-spacing: 1px; margin-top: 2px; }
+  .vibe-status { font-size: 11px; color: var(--accent); letter-spacing: 1px; display: flex; align-items: center; gap: 4px; }
+  .vibe-status::before { content: ''; width: 6px; height: 6px; background: var(--accent); border-radius: 50%; display: inline-block; animation: pulse 2s infinite; }
+
+  audio { display: none; }
 </style>
 </head>
 <body>
@@ -152,18 +228,28 @@
       <svg viewBox="0 0 24 24"><path d="M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4z"/></svg>
     </div>
   </div>
-  <div id="vibingBadge">
+
+  <div id="vibingBadge" onclick="openVibingModal()">
+    <div class="vibe-avatars" id="vibingAvatars"></div>
     <div class="vibe-dot"></div>
-    <span id="vibingCount">1 Vibing</span>
+    <span id="vibingCount">0 Vibing</span>
   </div>
 </div>
 
-<!-- Hidden audio element — background mein chalta hai! -->
+<!-- VIBING MODAL -->
+<div id="vibingModal">
+  <div class="modal-box" style="position:relative">
+    <div class="modal-title">◆ Currently Vibing ◆</div>
+    <div class="modal-close" onclick="closeVibingModal()">✕</div>
+    <div id="vibingUserList"></div>
+  </div>
+</div>
+
 <audio id="audioPlayer" preload="auto"></audio>
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-  import { getDatabase, ref, onValue, set, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+  import { getDatabase, ref, onValue, set, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyBxo7vd1FbKX5QgXKwPA4Qy2KARGqo3tkc",
@@ -177,16 +263,21 @@
 
   const app = initializeApp(firebaseConfig);
   const db = getDatabase(app);
-
-  // Audio element — YouTube IFrame nahi!
   const audioEl = document.getElementById('audioPlayer');
 
   let currentVideoId = null;
-  let isPlaying = true;
+  let isPlaying = false;
   let progressInterval = null;
   let myVibingRef = null;
-  let vibingKey = 'user_' + Date.now();
   let chatId = null;
+  let myUserId = null;
+  let vibingData = {};
+
+  // Telegram user info
+  let tgUser = null;
+  if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initDataUnsafe) {
+    tgUser = window.Telegram.WebApp.initDataUnsafe.user || null;
+  }
 
   function buildWaveform() {
     const wf = document.getElementById('waveform');
@@ -202,14 +293,15 @@
 
   async function loadAudio(videoId, seekTo) {
     try {
-      // Vercel se audio URL lo
+      document.getElementById('loading').style.display = 'flex';
       const res = await fetch('https://makima-api-nine.vercel.app/api/audio?video_id=' + videoId);
       const data = await res.json();
+      document.getElementById('loading').style.display = 'none';
 
       if (data.url) {
         audioEl.src = data.url;
         audioEl.currentTime = seekTo;
-        audioEl.play();
+        await audioEl.play();
         startProgress();
         resumeWave();
         document.getElementById('playIcon').style.display = 'none';
@@ -217,7 +309,8 @@
         isPlaying = true;
       }
     } catch(e) {
-      console.error('Audio load error:', e);
+      document.getElementById('loading').style.display = 'none';
+      console.error('Audio error:', e);
     }
   }
 
@@ -257,6 +350,13 @@
     const params = new URLSearchParams(window.location.search);
     chatId = params.get('chat_id') || params.get('startapp') || params.get('tgWebAppStartParam') || 'default';
 
+    // User ID set karo
+    if (tgUser) {
+      myUserId = String(tgUser.id);
+    } else {
+      myUserId = 'guest_' + Date.now();
+    }
+
     onValue(ref(db, 'rooms/' + chatId + '/now_playing'), snap => {
       document.getElementById('loading').style.display = 'none';
       const data = snap.val();
@@ -266,29 +366,103 @@
 
     registerVibing();
 
+    // Real-time vibing listener
     onValue(ref(db, 'rooms/' + chatId + '/vibing'), snap => {
-      const d = snap.val() || {};
-      document.getElementById('vibingCount').textContent = Object.keys(d).length + ' Vibing';
+      vibingData = snap.val() || {};
+      updateVibingUI();
     });
   };
+
+  function updateVibingUI() {
+    const users = Object.values(vibingData);
+    const count = users.length;
+    document.getElementById('vibingCount').textContent = count + ' Vibing';
+
+    // Avatars update karo (max 3)
+    const avatarContainer = document.getElementById('vibingAvatars');
+    avatarContainer.innerHTML = '';
+    users.slice(0, 3).forEach(u => {
+      if (u.photo_url) {
+        const img = document.createElement('img');
+        img.className = 'vibe-avatar';
+        img.src = u.photo_url;
+        img.onerror = () => img.style.display = 'none';
+        avatarContainer.appendChild(img);
+      } else {
+        const div = document.createElement('div');
+        div.className = 'vibe-avatar';
+        div.style.background = 'var(--accent2)';
+        div.style.display = 'flex';
+        div.style.alignItems = 'center';
+        div.style.justifyContent = 'center';
+        div.style.fontSize = '10px';
+        div.style.fontWeight = '700';
+        div.style.color = 'var(--bg-primary)';
+        div.textContent = (u.name || '?')[0].toUpperCase();
+        avatarContainer.appendChild(div);
+      }
+    });
+
+    // Modal update karo agar open hai
+    if (document.getElementById('vibingModal').classList.contains('open')) {
+      renderVibingModal();
+    }
+  }
+
+  function renderVibingModal() {
+    const list = document.getElementById('vibingUserList');
+    const users = Object.values(vibingData);
+    if (users.length === 0) {
+      list.innerHTML = '<div style="text-align:center; color: var(--accent2); padding: 20px; font-size:13px;">No one vibing right now</div>';
+      return;
+    }
+    list.innerHTML = '';
+    users.forEach(u => {
+      const div = document.createElement('div');
+      div.className = 'user-item';
+      const pfpHtml = u.photo_url
+        ? `<img class="user-pfp" src="${u.photo_url}" onerror="this.style.display='none'">`
+        : `<div class="user-pfp-placeholder">${(u.name || '?')[0].toUpperCase()}</div>`;
+      div.innerHTML = `
+        ${pfpHtml}
+        <div class="user-info">
+          <div class="user-name">${u.name || 'Unknown'}</div>
+          <div class="user-id">ID: ${u.user_id || '—'}</div>
+        </div>
+        <div class="vibe-status">Vibing</div>
+      `;
+      list.appendChild(div);
+    });
+  }
+
+  window.openVibingModal = function() {
+    renderVibingModal();
+    document.getElementById('vibingModal').classList.add('open');
+  };
+
+  window.closeVibingModal = function() {
+    document.getElementById('vibingModal').classList.remove('open');
+  };
+
+  // Modal background click se band karo
+  document.getElementById('vibingModal').addEventListener('click', function(e) {
+    if (e.target === this) closeVibingModal();
+  });
 
   function showNothing() {
     document.getElementById('player').style.display = 'none';
     document.getElementById('nothing').style.display = 'flex';
-    audioEl.pause();
-    audioEl.src = '';
+    audioEl.pause(); audioEl.src = '';
     if (progressInterval) clearInterval(progressInterval);
   }
 
   function showPlayer(data) {
     document.getElementById('nothing').style.display = 'none';
     document.getElementById('player').style.display = 'flex';
-
     const title = data.title || 'Unknown';
     document.getElementById('songTitle').textContent = title.length > 32 ? title.substring(0,32)+'...' : title;
     document.getElementById('requestedBy').textContent = 'Added by ' + (data.requested_by || 'Someone');
     if (data.video_id) document.getElementById('thumbnail').src = 'https://img.youtube.com/vi/' + data.video_id + '/hqdefault.jpg';
-
     const now = Math.floor(Date.now() / 1000);
     const elapsed = now - (data.start_time || now);
     const seekTo = Math.max(0, elapsed);
@@ -299,8 +473,7 @@
     }
 
     if (data.status === 'paused') {
-      audioEl.pause();
-      pauseWave();
+      audioEl.pause(); pauseWave();
       document.getElementById('playIcon').style.display = 'block';
       document.getElementById('pauseIcon').style.display = 'none';
       isPlaying = false;
@@ -308,9 +481,20 @@
   }
 
   function registerVibing() {
-    myVibingRef = ref(db, 'rooms/' + chatId + '/vibing/' + vibingKey);
-    set(myVibingRef, { t: Date.now() });
-    window.addEventListener('beforeunload', () => set(myVibingRef, null));
+    myVibingRef = ref(db, 'rooms/' + chatId + '/vibing/' + myUserId);
+
+    const userData = {
+      user_id: myUserId,
+      name: tgUser ? (tgUser.first_name + (tgUser.last_name ? ' ' + tgUser.last_name : '')) : 'Listener',
+      photo_url: tgUser && tgUser.photo_url ? tgUser.photo_url : null,
+      t: Date.now()
+    };
+
+    set(myVibingRef, userData);
+
+    // Tab/window band hone pe remove karo
+    window.addEventListener('beforeunload', () => remove(myVibingRef));
+    window.addEventListener('pagehide', () => remove(myVibingRef));
   }
 
   window.togglePlay = function() {
@@ -329,10 +513,7 @@
   window.seekBack = function() { audioEl.currentTime = Math.max(0, audioEl.currentTime - 10); };
   window.seekForward = function() { audioEl.currentTime = audioEl.currentTime + 10; };
   window.shuffleClick = function(el) { el.classList.toggle('active'); };
-  window.toggleRepeat = function(el) {
-    audioEl.loop = !audioEl.loop;
-    el.classList.toggle('active');
-  };
+  window.toggleRepeat = function(el) { audioEl.loop = !audioEl.loop; el.classList.toggle('active'); };
   window.toggleHeart = function(el) { el.textContent = el.textContent === '🤍' ? '🩵' : '🤍'; };
   function pauseWave() { document.querySelectorAll('.wave-bar').forEach(b => b.classList.add('paused')); }
   function resumeWave() { document.querySelectorAll('.wave-bar').forEach(b => b.classList.remove('paused')); }
