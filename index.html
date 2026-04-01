@@ -467,10 +467,22 @@
     const elapsed = now - (data.start_time || now);
     const seekTo = Math.max(0, elapsed);
 
-    if (data.video_id && data.video_id !== currentVideoId) {
-      currentVideoId = data.video_id;
-      loadAudio(data.video_id, seekTo);
-    }
+    if (data.audio_url && data.audio_url !== currentVideoId) {
+  currentVideoId = data.audio_url;
+  audioEl.src = data.audio_url;
+  audioEl.currentTime = seekTo;
+  audioEl.play();
+  startProgress();
+  resumeWave();
+  document.getElementById('playIcon').style.display = 'none';
+  document.getElementById('pauseIcon').style.display = 'block';
+  isPlaying = true;
+}
+
+// Cover image
+if (data.cover) {
+  document.getElementById('thumbnail').src = data.cover;
+}
 
     if (data.status === 'paused') {
       audioEl.pause(); pauseWave();
