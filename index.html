@@ -80,7 +80,6 @@
   #vibingBadge { display: flex; align-items: center; gap: 10px; background: var(--bg-secondary); border: 1px solid rgba(102,252,241,0.15); border-radius: 50px; padding: 10px 22px; font-family: 'Rajdhani', sans-serif; font-size: 14px; font-weight: 600; letter-spacing: 2px; color: var(--text-primary); text-transform: uppercase; }
   .vibe-dot { width: 7px; height: 7px; background: var(--accent); border-radius: 50%; box-shadow: 0 0 8px var(--glow); animation: pulse 2s infinite; }
   @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
-  #ytPlayer { display: none; }
 </style>
 </head>
 <body>
@@ -159,7 +158,8 @@
   </div>
 </div>
 
-<div id="ytPlayer"></div>
+<!-- Hidden audio element — background mein chalta hai! -->
+<audio id="audioPlayer" preload="auto"></audio>
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
@@ -178,14 +178,15 @@
   const app = initializeApp(firebaseConfig);
   const db = getDatabase(app);
 
-  let ytPlayer = null;
+  // Audio element — YouTube IFrame nahi!
+  const audioEl = document.getElementById('audioPlayer');
+
   let currentVideoId = null;
   let isPlaying = true;
   let progressInterval = null;
   let myVibingRef = null;
   let vibingKey = 'user_' + Date.now();
   let chatId = null;
-  let isMinimized = false;
 
   function buildWaveform() {
     const wf = document.getElementById('waveform');
@@ -199,51 +200,44 @@
   }
   buildWaveform();
 
-  window.onYouTubeIframeAPIReady = function() {};
+  async function loadAudio(videoId, seekTo) {
+    try {
+      // Vercel se audio URL lo
+      const res = await fetch('https://makima-api-nine.vercel.app/api/audio?video_id=' + videoId);
+      const data = await res.json();
 
-  function loadYT() {
-    if (window.YT) return;
-    const s = document.createElement('script');
-    s.src = "https://www.youtube.com/iframe_api";
-    document.head.appendChild(s);
-  }
-
-  function createPlayer(videoId, seekTo) {
-    if (ytPlayer) {
-      ytPlayer.loadVideoById({ videoId, startSeconds: Math.floor(seekTo) });
-      return;
-    }
-    ytPlayer = new YT.Player('ytPlayer', {
-      height: '1', width: '1', videoId,
-      playerVars: { autoplay: 1, controls: 0, start: Math.floor(seekTo) },
-      events: {
-        onReady: e => { e.target.seekTo(seekTo, true); e.target.playVideo(); startProgress(); },
-        onStateChange: e => {
-          // Agar minimize hai aur YouTube auto-pause ho toh wapas play karo
-          if (e.data === YT.PlayerState.PAUSED && isMinimized && isPlaying) {
-            setTimeout(() => { if (ytPlayer && isMinimized && isPlaying) ytPlayer.playVideo(); }, 500);
-          }
-          if (e.data === YT.PlayerState.ENDED) {
-            document.getElementById('playIcon').style.display = 'block';
-            document.getElementById('pauseIcon').style.display = 'none';
-            isPlaying = false;
-            isMinimized = false;
-            pauseWave();
-          }
-        }
+      if (data.url) {
+        audioEl.src = data.url;
+        audioEl.currentTime = seekTo;
+        audioEl.play();
+        startProgress();
+        resumeWave();
+        document.getElementById('playIcon').style.display = 'none';
+        document.getElementById('pauseIcon').style.display = 'block';
+        isPlaying = true;
       }
-    });
+    } catch(e) {
+      console.error('Audio load error:', e);
+    }
   }
+
+  audioEl.addEventListener('ended', () => {
+    document.getElementById('playIcon').style.display = 'block';
+    document.getElementById('pauseIcon').style.display = 'none';
+    isPlaying = false;
+    pauseWave();
+  });
 
   function startProgress() {
     if (progressInterval) clearInterval(progressInterval);
     progressInterval = setInterval(() => {
-      if (!ytPlayer || !ytPlayer.getCurrentTime) return;
-      const cur = ytPlayer.getCurrentTime();
-      const dur = ytPlayer.getDuration() || 1;
-      document.getElementById('progressFill').style.width = (cur/dur*100) + '%';
-      document.getElementById('currentTime').textContent = fmt(cur);
-      document.getElementById('totalTime').textContent = fmt(dur);
+      const cur = audioEl.currentTime;
+      const dur = audioEl.duration || 1;
+      if (!isNaN(dur) && dur > 0) {
+        document.getElementById('progressFill').style.width = (cur/dur*100) + '%';
+        document.getElementById('currentTime').textContent = fmt(cur);
+        document.getElementById('totalTime').textContent = fmt(dur);
+      }
     }, 1000);
   }
 
@@ -252,72 +246,16 @@
     return Math.floor(s/60) + ':' + (s%60 < 10 ? '0' : '') + (s%60);
   }
 
-  function resyncPlayer() {
-    if (!chatId || !currentVideoId) return;
-    get(ref(db, 'rooms/' + chatId + '/now_playing')).then(snap => {
-      const data = snap.val();
-      if (data && data.status === 'playing' && ytPlayer && ytPlayer.seekTo) {
-        const now = Math.floor(Date.now() / 1000);
-        const elapsed = now - (data.start_time || now);
-        ytPlayer.seekTo(elapsed, true);
-        ytPlayer.playVideo();
-        resumeWave();
-        document.getElementById('playIcon').style.display = 'none';
-        document.getElementById('pauseIcon').style.display = 'block';
-        isPlaying = true;
-      }
-    });
-  }
-
   window.startListening = function() {
     if (window.Telegram && window.Telegram.WebApp) {
       Telegram.WebApp.expand();
-
-      // Minimize detect karo
-      Telegram.WebApp.onEvent('viewportChanged', function(e) {
-        if (e.isStateStable) {
-          isMinimized = false;
-          resyncPlayer();
-        }
-      });
-
-      // Wapas aane pe resync
-      Telegram.WebApp.onEvent('activated', function() {
-        isMinimized = false;
-        resyncPlayer();
-      });
-
-      // App minimize hone pe flag set karo
-      Telegram.WebApp.onEvent('deactivated', function() {
-        isMinimized = true;
-      });
     }
-
-    // Visibility change pe sirf flag set karo — pause mat karo
-    document.addEventListener('visibilitychange', () => {
-      if (!document.hidden) {
-        isMinimized = false;
-        resyncPlayer();
-      } else {
-        isMinimized = true;
-        // YouTube pause hone se rokna — 1 second baad check karo
-        setTimeout(() => {
-          if (ytPlayer && isPlaying && isMinimized) {
-            ytPlayer.playVideo();
-          }
-        }, 1000);
-      }
-    });
 
     document.getElementById('splash').style.display = 'none';
     document.getElementById('loading').style.display = 'flex';
 
-    // chat_id URL params ya startapp se lo
     const params = new URLSearchParams(window.location.search);
-    let chatIdParam = params.get('chat_id') || params.get('startapp') || params.get('tgWebAppStartParam') || 'default';
-    chatId = chatIdParam;
-
-    loadYT();
+    chatId = params.get('chat_id') || params.get('startapp') || params.get('tgWebAppStartParam') || 'default';
 
     onValue(ref(db, 'rooms/' + chatId + '/now_playing'), snap => {
       document.getElementById('loading').style.display = 'none';
@@ -337,70 +275,68 @@
   function showNothing() {
     document.getElementById('player').style.display = 'none';
     document.getElementById('nothing').style.display = 'flex';
-    if (ytPlayer) ytPlayer.stopVideo();
+    audioEl.pause();
+    audioEl.src = '';
     if (progressInterval) clearInterval(progressInterval);
   }
 
   function showPlayer(data) {
     document.getElementById('nothing').style.display = 'none';
     document.getElementById('player').style.display = 'flex';
+
     const title = data.title || 'Unknown';
     document.getElementById('songTitle').textContent = title.length > 32 ? title.substring(0,32)+'...' : title;
     document.getElementById('requestedBy').textContent = 'Added by ' + (data.requested_by || 'Someone');
     if (data.video_id) document.getElementById('thumbnail').src = 'https://img.youtube.com/vi/' + data.video_id + '/hqdefault.jpg';
+
     const now = Math.floor(Date.now() / 1000);
     const elapsed = now - (data.start_time || now);
     const seekTo = Math.max(0, elapsed);
+
     if (data.video_id && data.video_id !== currentVideoId) {
       currentVideoId = data.video_id;
-      if (window.YT && window.YT.Player) createPlayer(data.video_id, seekTo);
-      else setTimeout(() => createPlayer(data.video_id, seekTo), 2000);
+      loadAudio(data.video_id, seekTo);
     }
+
     if (data.status === 'paused') {
+      audioEl.pause();
       pauseWave();
       document.getElementById('playIcon').style.display = 'block';
       document.getElementById('pauseIcon').style.display = 'none';
       isPlaying = false;
-      if (ytPlayer) ytPlayer.pauseVideo();
-    } else {
-      resumeWave();
-      document.getElementById('playIcon').style.display = 'none';
-      document.getElementById('pauseIcon').style.display = 'block';
-      isPlaying = true;
-      if (ytPlayer) ytPlayer.playVideo();
     }
   }
 
   function registerVibing() {
     myVibingRef = ref(db, 'rooms/' + chatId + '/vibing/' + vibingKey);
     set(myVibingRef, { t: Date.now() });
-    // Sirf tab remove karo jab page bilkul band ho
     window.addEventListener('beforeunload', () => set(myVibingRef, null));
   }
 
   window.togglePlay = function() {
-    if (!ytPlayer) return;
     if (isPlaying) {
-      ytPlayer.pauseVideo(); pauseWave();
+      audioEl.pause(); pauseWave();
       document.getElementById('playIcon').style.display = 'block';
       document.getElementById('pauseIcon').style.display = 'none';
     } else {
-      ytPlayer.playVideo(); resumeWave();
+      audioEl.play(); resumeWave();
       document.getElementById('playIcon').style.display = 'none';
       document.getElementById('pauseIcon').style.display = 'block';
     }
     isPlaying = !isPlaying;
   };
 
-  window.seekBack = function() { if (ytPlayer) ytPlayer.seekTo(ytPlayer.getCurrentTime()-10, true); };
-  window.seekForward = function() { if (ytPlayer) ytPlayer.seekTo(ytPlayer.getCurrentTime()+10, true); };
+  window.seekBack = function() { audioEl.currentTime = Math.max(0, audioEl.currentTime - 10); };
+  window.seekForward = function() { audioEl.currentTime = audioEl.currentTime + 10; };
   window.shuffleClick = function(el) { el.classList.toggle('active'); };
-  window.toggleRepeat = function(el) { el.classList.toggle('active'); };
+  window.toggleRepeat = function(el) {
+    audioEl.loop = !audioEl.loop;
+    el.classList.toggle('active');
+  };
   window.toggleHeart = function(el) { el.textContent = el.textContent === '🤍' ? '🩵' : '🤍'; };
   function pauseWave() { document.querySelectorAll('.wave-bar').forEach(b => b.classList.add('paused')); }
   function resumeWave() { document.querySelectorAll('.wave-bar').forEach(b => b.classList.remove('paused')); }
   window.addEventListener('load', () => { setTimeout(() => { document.getElementById('loading').style.display = 'none'; }, 800); });
 </script>
-<script src="https://www.youtube.com/iframe_api"></script>
 </body>
 </html>
