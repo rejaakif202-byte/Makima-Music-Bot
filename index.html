@@ -185,6 +185,7 @@
   let myVibingRef = null;
   let vibingKey = 'user_' + Date.now();
   let chatId = null;
+  let isMinimized = false;
 
   function buildWaveform() {
     const wf = document.getElementById('waveform');
@@ -218,10 +219,15 @@
       events: {
         onReady: e => { e.target.seekTo(seekTo, true); e.target.playVideo(); startProgress(); },
         onStateChange: e => {
+          // Agar minimize hai aur YouTube auto-pause ho toh wapas play karo
+          if (e.data === YT.PlayerState.PAUSED && isMinimized && isPlaying) {
+            setTimeout(() => { if (ytPlayer && isMinimized && isPlaying) ytPlayer.playVideo(); }, 500);
+          }
           if (e.data === YT.PlayerState.ENDED) {
             document.getElementById('playIcon').style.display = 'block';
             document.getElementById('pauseIcon').style.display = 'none';
             isPlaying = false;
+            isMinimized = false;
             pauseWave();
           }
         }
@@ -246,35 +252,71 @@
     return Math.floor(s/60) + ':' + (s%60 < 10 ? '0' : '') + (s%60);
   }
 
+  function resyncPlayer() {
+    if (!chatId || !currentVideoId) return;
+    get(ref(db, 'rooms/' + chatId + '/now_playing')).then(snap => {
+      const data = snap.val();
+      if (data && data.status === 'playing' && ytPlayer && ytPlayer.seekTo) {
+        const now = Math.floor(Date.now() / 1000);
+        const elapsed = now - (data.start_time || now);
+        ytPlayer.seekTo(elapsed, true);
+        ytPlayer.playVideo();
+        resumeWave();
+        document.getElementById('playIcon').style.display = 'none';
+        document.getElementById('pauseIcon').style.display = 'block';
+        isPlaying = true;
+      }
+    });
+  }
+
   window.startListening = function() {
     if (window.Telegram && window.Telegram.WebApp) {
       Telegram.WebApp.expand();
-      Telegram.WebApp.onEvent('activated', function() {
-        if (chatId && currentVideoId) {
-          get(ref(db, 'rooms/' + chatId + '/now_playing')).then(snap => {
-            const data = snap.val();
-            if (data && data.status === 'playing') {
-              const now = Math.floor(Date.now() / 1000);
-              const elapsed = now - (data.start_time || now);
-              if (ytPlayer && ytPlayer.seekTo) {
-                ytPlayer.seekTo(elapsed, true);
-                ytPlayer.playVideo();
-                resumeWave();
-                document.getElementById('playIcon').style.display = 'none';
-                document.getElementById('pauseIcon').style.display = 'block';
-                isPlaying = true;
-              }
-            }
-          });
+
+      // Minimize detect karo
+      Telegram.WebApp.onEvent('viewportChanged', function(e) {
+        if (e.isStateStable) {
+          isMinimized = false;
+          resyncPlayer();
         }
       });
+
+      // Wapas aane pe resync
+      Telegram.WebApp.onEvent('activated', function() {
+        isMinimized = false;
+        resyncPlayer();
+      });
+
+      // App minimize hone pe flag set karo
+      Telegram.WebApp.onEvent('deactivated', function() {
+        isMinimized = true;
+      });
     }
+
+    // Visibility change pe sirf flag set karo — pause mat karo
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) {
+        isMinimized = false;
+        resyncPlayer();
+      } else {
+        isMinimized = true;
+        // YouTube pause hone se rokna — 1 second baad check karo
+        setTimeout(() => {
+          if (ytPlayer && isPlaying && isMinimized) {
+            ytPlayer.playVideo();
+          }
+        }, 1000);
+      }
+    });
 
     document.getElementById('splash').style.display = 'none';
     document.getElementById('loading').style.display = 'flex';
 
+    // chat_id URL params ya startapp se lo
     const params = new URLSearchParams(window.location.search);
-    chatId = params.get('chat_id') || 'default';
+    let chatIdParam = params.get('chat_id') || params.get('startapp') || params.get('tgWebAppStartParam') || 'default';
+    chatId = chatIdParam;
+
     loadYT();
 
     onValue(ref(db, 'rooms/' + chatId + '/now_playing'), snap => {
@@ -332,11 +374,8 @@
   function registerVibing() {
     myVibingRef = ref(db, 'rooms/' + chatId + '/vibing/' + vibingKey);
     set(myVibingRef, { t: Date.now() });
+    // Sirf tab remove karo jab page bilkul band ho
     window.addEventListener('beforeunload', () => set(myVibingRef, null));
-    document.addEventListener('visibilitychange', () => {
-      if (document.hidden) set(myVibingRef, null);
-      else set(myVibingRef, { t: Date.now() });
-    });
   }
 
   window.togglePlay = function() {
